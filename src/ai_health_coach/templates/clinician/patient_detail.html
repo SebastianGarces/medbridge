@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}{{ patient.name }} — MedBridge{% endblock %}
+{% block body %}
+<div class="flex h-screen">
+    {% include "components/clinician_sidebar.html" %}
+    <div class="flex-1 overflow-y-auto bg-[#FAFAFA]">
+        <div class="px-8 py-4 border-b border-[#E5E5E5] bg-white flex items-center justify-between">
+            <div class="flex items-center gap-2 text-sm text-[#888888]">
+                <a href="/clinician/dashboard" class="hover:text-primary">Patients</a>
+                <span>/</span>
+                <span class="text-[#1A1A1A]">{{ patient.name }}</span>
+            </div>
+            <button class="px-4 py-2 rounded-lg border border-[#E5E5E5] text-sm text-[#666666] hover:bg-[#F8F8F8] flex items-center gap-2">
+                <i data-lucide="mail" class="w-4 h-4"></i>
+                Contact Patient
+            </button>
+        </div>
+        <div class="flex">
+            <div class="flex-1 p-8">
+                <div class="bg-white rounded-xl border border-[#E5E5E5] p-6 mb-6 flex items-center gap-4">
+                    <div class="w-14 h-14 rounded-full bg-[#F0F0F0] flex items-center justify-center text-lg font-medium text-[#666666]">
+                        {{ patient.name[0] }}{{ patient.name.split(' ')[-1][0] }}
+                    </div>
+                    <div class="flex-1">
+                        <div class="font-['Newsreader'] text-xl font-medium">{{ patient.name }}</div>
+                        <div class="text-sm text-[#666666]">Phase: {{ patient.phase }} · Adherence: 78% · Goal set {{ patient.created_at.strftime('%b %d') if patient.created_at else '' }}</div>
+                    </div>
+                    {% set phase = patient.phase %}{% include "components/phase_badge.html" %}
+                </div>
+                <div class="bg-white rounded-xl border border-[#E5E5E5] p-6">
+                    <div class="font-['JetBrains_Mono'] text-[11px] font-semibold uppercase tracking-[2px] text-[#888888] mb-4">Conversation Transcript</div>
+                    <div class="space-y-3">
+                        {% for msg in messages %}
+                        <div class="flex gap-3">
+                            <div class="text-[11px] text-[#AAAAAA] font-['JetBrains_Mono'] w-12 flex-shrink-0 pt-0.5">{{ msg.created_at.strftime('%H:%M') if msg.created_at else '' }}</div>
+                            <div>
+                                <span class="text-xs font-medium {% if msg.role == 'coach' %}text-primary{% elif msg.role == 'patient' %}text-[#E07B54]{% else %}text-[#888888]{% endif %}">
+                                    {{ msg.role|capitalize }}:
+                                </span>
+                                <span class="text-sm text-[#666666]">{{ msg.content }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <div class="w-[340px] p-8 space-y-6">
+                {% if patient.goal %}
+                <div class="bg-white rounded-xl border border-[#E5E5E5] p-5">
+                    <div class="font-['JetBrains_Mono'] text-[11px] font-semibold uppercase tracking-[2px] text-[#888888] mb-3">Goal</div>
+                    <div class="font-['Newsreader'] text-lg font-medium mb-1">{{ patient.goal.goal_text }}</div>
+                    {% if patient.goal.target_date %}
+                    <div class="text-xs text-[#666666] mb-3">Deadline: {{ patient.goal.target_date }}</div>
+                    {% endif %}
+                    <div class="w-full h-2 bg-[#F0F0F0] rounded-full mb-1">
+                        <div class="h-2 bg-primary rounded-full" style="width: {{ patient.goal.progress_pct }}%"></div>
+                    </div>
+                    <div class="text-xs text-[#888888]">{{ patient.goal.progress_pct }}% complete</div>
+                </div>
+                {% endif %}
+                <div class="bg-white rounded-xl border border-[#E5E5E5] p-5">
+                    <div class="font-['JetBrains_Mono'] text-[11px] font-semibold uppercase tracking-[2px] text-[#888888] mb-3">Phase History</div>
+                    <div class="space-y-3">
+                        {% for t in transitions %}
+                        <div class="flex items-center gap-2">
+                            <div class="w-2 h-2 rounded-full {% if t.to_phase == 'ACTIVE' %}bg-[#16A34A]{% elif t.to_phase == 'ONBOARDING' %}bg-[#F59E0B]{% else %}bg-[#888888]{% endif %}"></div>
+                            <span class="text-sm">{{ t.to_phase }} — {{ t.created_at.strftime('%b %d') if t.created_at else '' }}</span>
+                        </div>
+                        {% endfor %}
+                        {% if not transitions %}
+                        <div class="text-sm text-[#888888]">No phase transitions recorded</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl border border-[#E5E5E5] p-5">
+                    <div class="font-['JetBrains_Mono'] text-[11px] font-semibold uppercase tracking-[2px] text-[#888888] mb-3">Alerts</div>
+                    {% if patient.alerts %}
+                    <div class="space-y-2">
+                        {% for alert in patient.alerts %}
+                        <div class="text-sm">
+                            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase text-white {% if alert.severity == 'critical' %}bg-[#DC2626]{% elif alert.severity == 'warning' %}bg-[#F59E0B]{% else %}bg-[#E07B54]{% endif %}">{{ alert.severity }}</span>
+                            {{ alert.title }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-sm text-[#888888]">No alerts for this patient</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

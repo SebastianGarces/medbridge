@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Consent — MedBridge Coach{% endblock %}
+{% block body %}
+<div class="min-h-screen">
+    <header class="px-8 py-4 border-b border-[#E5E5E5] bg-white">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+                <i data-lucide="heart-pulse" class="w-5 h-5 text-white"></i>
+            </div>
+            <span class="font-['Newsreader'] text-lg font-medium">MedBridge Coach</span>
+        </div>
+    </header>
+    <div class="flex items-center justify-center py-16">
+        <div class="bg-white rounded-2xl border border-[#E5E5E5] p-8 w-[560px]">
+            <div class="w-12 h-12 rounded-full bg-primary-light flex items-center justify-center mb-4">
+                <i data-lucide="shield-check" class="w-6 h-6 text-primary"></i>
+            </div>
+            <h1 class="font-['Newsreader'] text-[28px] font-medium mb-2">Enable Your AI Health Coach</h1>
+            <p class="text-sm text-[#666666] mb-6">Your care team has set up an AI-powered health coach to support your home exercise program. Before we begin, we need your consent to send you proactive check-ins and motivational messages.</p>
+
+            <div class="bg-[#F8F8F8] rounded-xl p-5 mb-6">
+                <p class="text-sm font-medium mb-3">What to expect:</p>
+                <div class="space-y-2.5">
+                    <div class="flex items-center gap-2.5 text-sm text-[#666666]">
+                        <i data-lucide="circle" class="w-4 h-4 text-[#AAAAAA]"></i>
+                        Periodic check-ins about your exercise progress
+                    </div>
+                    <div class="flex items-center gap-2.5 text-sm text-[#666666]">
+                        <i data-lucide="target" class="w-4 h-4 text-primary"></i>
+                        Help setting and tracking your exercise goals
+                    </div>
+                    <div class="flex items-center gap-2.5 text-sm text-[#666666]">
+                        <i data-lucide="heart" class="w-4 h-4 text-primary"></i>
+                        Motivational support — never clinical advice
+                    </div>
+                </div>
+            </div>
+
+            <form method="POST" action="/consent" hx-post="/consent">
+                <div class="flex items-center gap-3 mb-6 py-3">
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" name="consent" value="true" class="sr-only peer">
+                        <div class="w-12 h-7 bg-[#E5E5E5] peer-focus:ring-2 peer-focus:ring-primary-light rounded-full peer peer-checked:bg-primary transition-colors">
+                            <div class="absolute top-[3px] left-[3px] w-[22px] h-[22px] bg-white rounded-full peer-checked:translate-x-5 transition-transform"></div>
+                        </div>
+                    </label>
+                    <span class="text-sm">I consent to receiving AI coach messages and check-ins</span>
+                </div>
+                <div class="flex gap-3">
+                    <a href="/" class="px-6 py-3 rounded-lg border border-[#E5E5E5] text-sm text-[#666666] hover:bg-[#F8F8F8]">Not Now</a>
+                    <button type="submit" class="px-8 py-3 bg-primary text-white text-sm font-medium rounded-full hover:bg-primary-dark">Get Started</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

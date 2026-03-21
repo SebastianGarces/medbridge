@@ -1,0 +1,18 @@
+{% if msg.role == 'patient' %}
+<div class="flex justify-end">
+    <div class="max-w-[70%] bg-primary text-white rounded-xl px-4 py-3">
+        <p class="text-sm leading-relaxed">{{ msg.content }}</p>
+        <div class="text-[11px] text-white/60 font-['JetBrains_Mono'] mt-1">{{ msg.created_at.strftime('%H:%M') if msg.created_at else '' }}</div>
+    </div>
+</div>
+{% else %}
+<div class="flex gap-3">
+    <div class="w-8 h-8 rounded-full bg-primary flex-shrink-0 flex items-center justify-center">
+        <i data-lucide="heart-pulse" class="w-4 h-4 text-white"></i>
+    </div>
+    <div class="max-w-[70%] bg-white border border-[#E5E5E5] rounded-xl px-4 py-3">
+        <p class="text-sm leading-relaxed text-[#1A1A1A]">{{ msg.content }}</p>
+        <div class="text-[11px] text-[#AAAAAA] font-['JetBrains_Mono'] mt-1">{{ msg.created_at.strftime('%H:%M') if msg.created_at else '' }}</div>
+    </div>
+</div>
+{% endif %}

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}My Goals — MedBridge Coach{% endblock %}
+{% block body %}
+<div class="flex h-screen">
+    {% include "components/patient_sidebar.html" %}
+    <div class="flex-1 overflow-y-auto p-8">
+        <h1 class="font-['Newsreader'] text-[28px] font-medium mb-6">My Goal Progress</h1>
+        <div class="grid grid-cols-3 gap-4 mb-6">
+            {% include "components/metric_card.html" %}
+        </div>
+        {% if goal %}
+        <div class="bg-white rounded-xl border border-[#E5E5E5] p-6 mb-6">
+            <div class="flex items-center justify-between mb-4">
+                <div class="font-['Newsreader'] text-lg font-medium">{{ goal.goal_text }}{% if goal.target_date %} by {{ goal.target_date }}{% endif %}</div>
+                <span class="px-3 py-1 rounded-full text-xs font-medium bg-[#DCFCE7] text-[#16A34A]">On Track</span>
+            </div>
+            <div class="w-full h-3 bg-[#F0F0F0] rounded-full mb-2">
+                <div class="h-3 bg-primary rounded-full" style="width: {{ goal.progress_pct }}%"></div>
+            </div>
+            <div class="font-['JetBrains_Mono'] text-xs text-primary">{{ goal.progress_pct }}% toward your goal</div>
+        </div>
+        {% endif %}
+        <div class="bg-white rounded-xl border border-[#E5E5E5] p-6">
+            <div class="font-['Newsreader'] text-lg font-medium mb-4">This Week's Activity</div>
+            <div class="flex justify-between">
+                {% for day in ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] %}
+                <div class="flex flex-col items-center gap-2">
+                    <div class="w-10 h-10 rounded-full border-2 {% if loop.index <= 4 %}bg-primary border-primary text-white{% elif loop.index == 5 %}border-primary text-primary{% else %}border-[#E5E5E5] text-[#AAAAAA]{% endif %} flex items-center justify-center">
+                        {% if loop.index <= 4 %}<i data-lucide="check" class="w-4 h-4"></i>{% elif loop.index >= 6 %}<span class="text-xs">—</span>{% endif %}
+                    </div>
+                    <span class="text-xs {% if loop.index == 5 %}text-primary font-medium{% else %}text-[#888888]{% endif %}">{{ day }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

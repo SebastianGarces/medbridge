@@ -1,0 +1,11 @@
+{% if phase == 'ACTIVE' %}
+<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#DCFCE7] text-[#16A34A]">Active</span>
+{% elif phase == 'ONBOARDING' %}
+<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#FEF9C3] text-[#F59E0B]">Onboarding</span>
+{% elif phase == 'RE_ENGAGING' %}
+<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#FEE2E2] text-[#DC2626]">Re-engaging</span>
+{% elif phase == 'DORMANT' %}
+<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#F0F0F0] text-[#888888]">Dormant</span>
+{% else %}
+<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#F0F0F0] text-[#888888]">{{ phase }}</span>
+{% endif %}

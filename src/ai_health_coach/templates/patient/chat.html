@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Chat — MedBridge Coach{% endblock %}
+{% block body %}
+<div class="flex h-screen">
+    {% include "components/patient_sidebar.html" %}
+    <div class="flex-1 flex flex-col">
+        <div class="px-8 py-4 border-b border-[#E5E5E5] bg-white flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
+                <i data-lucide="heart-pulse" class="w-5 h-5 text-white"></i>
+            </div>
+            <div>
+                <div class="text-sm font-medium">AI Health Coach</div>
+                <div class="text-xs text-[#16A34A]">Online · Ready to help</div>
+            </div>
+        </div>
+        <div class="flex-1 flex">
+            <div class="flex-1 flex flex-col">
+                <div id="message-list" class="flex-1 overflow-y-auto px-8 py-6 space-y-4"
+                     hx-get="/chat/messages" hx-trigger="every 3s" hx-swap="innerHTML">
+                    {% for msg in messages %}
+                    {% include "components/chat_bubble.html" %}
+                    {% endfor %}
+                </div>
+                <div class="px-8 py-4 border-t border-[#E5E5E5] bg-white">
+                    <form hx-post="/chat/send" hx-target="#message-list" hx-swap="innerHTML" class="flex gap-3">
+                        <input type="text" name="message" placeholder="Type your message..."
+                               class="flex-1 px-4 py-3 rounded-lg border border-[#E5E5E5] bg-[#F8F8F8] text-sm focus:outline-none focus:ring-2 focus:ring-primary-light focus:border-primary">
+                        <button type="submit" class="w-12 h-12 bg-primary rounded-full flex items-center justify-center hover:bg-primary-dark">
+                            <i data-lucide="send" class="w-5 h-5 text-white"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% if goal %}
+            <div class="w-[320px] border-l border-[#E5E5E5] bg-white p-6 space-y-6">
+                <div>
+                    <div class="font-['JetBrains_Mono'] text-[11px] font-semibold uppercase tracking-[2px] text-[#888888] mb-3">Your Goal</div>
+                    <div class="font-['Newsreader'] text-lg font-medium">{{ goal.goal_text }}</div>
+                    {% if goal.target_date %}
+                    <div class="text-xs text-primary mt-1">Target: {{ goal.target_date }}</div>
+                    {% endif %}
+                    <div class="mt-3">
+                        <div class="text-xs text-[#888888] mb-1">{{ goal.progress_pct }}% complete</div>
+                        <div class="w-full h-2 bg-[#F0F0F0] rounded-full">
+                            <div class="h-2 bg-primary rounded-full" style="width: {{ goal.progress_pct }}%"></div>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="font-['JetBrains_Mono'] text-[11px] font-semibold uppercase tracking-[2px] text-[#888888] mb-3">Exercise Program</div>
+                    <div class="space-y-2">
+                        {% for ex in exercises %}
+                        <div class="flex items-center gap-2 text-sm">
+                            <div class="w-2 h-2 rounded-full {% if loop.index <= 2 %}bg-primary{% else %}bg-[#E5E5E5]{% endif %}"></div>
+                            {{ ex.name }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

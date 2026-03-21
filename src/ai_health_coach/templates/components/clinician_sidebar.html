@@ -1,0 +1,25 @@
+<div class="w-[260px] bg-[#1A1A1A] flex flex-col h-full">
+    <div class="px-5 py-4 flex items-center gap-3">
+        <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+            <i data-lucide="heart-pulse" class="w-5 h-5 text-white"></i>
+        </div>
+        <span class="font-['Newsreader'] text-lg font-medium text-white">MedBridge</span>
+    </div>
+    <nav class="flex-1 px-3 py-2 space-y-1">
+        <a href="/clinician/dashboard" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm {% if active_page == 'dashboard' %}bg-white/10 text-white font-medium{% else %}text-white/60 hover:bg-white/5{% endif %}">
+            <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+            Dashboard
+        </a>
+        <a href="/clinician/dashboard" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm {% if active_page == 'patients' %}bg-white/10 text-white font-medium{% else %}text-white/60 hover:bg-white/5{% endif %}">
+            <i data-lucide="users" class="w-5 h-5"></i>
+            Patients
+        </a>
+        <a href="/clinician/alerts" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm {% if active_page == 'alerts' %}bg-white/10 text-white font-medium{% else %}text-white/60 hover:bg-white/5{% endif %}">
+            <i data-lucide="bell" class="w-5 h-5"></i>
+            Alerts
+            {% if alert_count is defined and alert_count > 0 %}
+            <span class="ml-auto px-2 py-0.5 bg-[#DC2626] text-white text-[10px] font-bold rounded-full">{{ alert_count }}</span>
+            {% endif %}
+        </a>
+    </nav>
+</div>

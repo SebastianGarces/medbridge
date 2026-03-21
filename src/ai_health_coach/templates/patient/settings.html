@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Settings — MedBridge Coach{% endblock %}
+{% block body %}
+<div class="flex h-screen">
+    {% include "components/patient_sidebar.html" %}
+    <div class="flex-1 overflow-y-auto p-8">
+        <h1 class="font-['Newsreader'] text-[28px] font-medium mb-6">Settings & Preferences</h1>
+        <form method="POST" action="/settings" hx-post="/settings">
+            <div class="bg-white rounded-xl border border-[#E5E5E5] p-6 mb-4">
+                <div class="font-['JetBrains_Mono'] text-[11px] font-semibold uppercase tracking-[2px] text-[#888888] mb-4">Coach Consent</div>
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="text-[15px] font-medium">AI Coach outreach enabled</div>
+                        <div class="text-sm text-[#666666]">Allow the coach to send you proactive check-ins and messages</div>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" name="consent" value="true" {% if patient.consent_given %}checked{% endif %} class="sr-only peer">
+                        <div class="w-12 h-7 bg-[#E5E5E5] rounded-full peer peer-checked:bg-primary transition-colors relative">
+                            <div class="absolute top-[3px] left-[3px] w-[22px] h-[22px] bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl border border-[#E5E5E5] p-6 mb-4">
+                <div class="font-['JetBrains_Mono'] text-[11px] font-semibold uppercase tracking-[2px] text-[#888888] mb-4">Notifications</div>
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="text-[15px] font-medium">Check-in frequency</div>
+                            <div class="text-sm text-[#666666]">How often the coach checks in with you</div>
+                        </div>
+                        <select class="px-3 py-2 rounded-lg border border-[#E5E5E5] text-sm bg-white">
+                            <option selected>Default (Day 2, 5, 7)</option>
+                            <option>Daily</option>
+                            <option>Weekly</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="text-[15px] font-medium">Exercise reminders</div>
+                            <div class="text-sm text-[#666666]">Get daily reminders to complete your exercises</div>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" name="reminders" value="true" checked class="sr-only peer">
+                            <div class="w-12 h-7 bg-[#E5E5E5] rounded-full peer peer-checked:bg-primary transition-colors relative">
+                                <div class="absolute top-[3px] left-[3px] w-[22px] h-[22px] bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl border border-[#E5E5E5] p-6">
+                <div class="font-['JetBrains_Mono'] text-[11px] font-semibold uppercase tracking-[2px] text-[#888888] mb-4">Timezone & Schedule</div>
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="text-[15px] font-medium">Timezone</div>
+                            <div class="text-sm text-[#666666]">Used to schedule check-ins at appropriate times</div>
+                        </div>
+                        <select class="px-3 py-2 rounded-lg border border-[#E5E5E5] text-sm bg-white">
+                            <option selected>America/New_York (EST)</option>
+                            <option>America/Chicago (CST)</option>
+                            <option>America/Denver (MST)</option>
+                            <option>America/Los_Angeles (PST)</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="text-[15px] font-medium">Preferred reminder time</div>
+                            <div class="text-sm text-[#666666]">When you'd like to receive exercise reminders</div>
+                        </div>
+                        <select class="px-3 py-2 rounded-lg border border-[#E5E5E5] text-sm bg-white">
+                            <option>8:00 AM</option>
+                            <option selected>9:00 AM</option>
+                            <option>10:00 AM</option>
+                            <option>12:00 PM</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

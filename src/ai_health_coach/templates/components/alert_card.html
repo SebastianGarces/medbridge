@@ -1,0 +1,32 @@
+<div class="bg-white rounded-xl border border-[#E5E5E5] p-5 flex gap-4 {% if alert.severity == 'critical' %}border-l-4 border-l-[#DC2626]{% elif alert.severity == 'warning' %}border-l-4 border-l-[#F59E0B]{% else %}border-l-4 border-l-[#E07B54]{% endif %}">
+    <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 {% if alert.severity == 'critical' %}bg-[#FEE2E2]{% elif alert.severity == 'warning' %}bg-[#FEF9C3]{% else %}bg-[#FFF3ED]{% endif %}">
+        {% if alert.severity == 'critical' %}
+        <i data-lucide="shield-alert" class="w-5 h-5 text-[#DC2626]"></i>
+        {% elif alert.severity == 'warning' %}
+        <i data-lucide="triangle-alert" class="w-5 h-5 text-[#F59E0B]"></i>
+        {% else %}
+        <i data-lucide="shield-alert" class="w-5 h-5 text-[#E07B54]"></i>
+        {% endif %}
+    </div>
+    <div class="flex-1">
+        <div class="flex items-center gap-2 mb-1">
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-[1px] text-white {% if alert.severity == 'critical' %}bg-[#DC2626]{% elif alert.severity == 'warning' %}bg-[#F59E0B]{% else %}bg-[#E07B54]{% endif %}">{{ alert.severity }}</span>
+            <span class="text-xs text-[#AAAAAA] font-['JetBrains_Mono']">{{ alert.created_at.strftime('%b %d, %H:%M') if alert.created_at else '' }}</span>
+        </div>
+        <div class="text-[15px] font-medium mb-1">{{ alert.title }}</div>
+        <p class="text-[13px] text-[#666666] leading-snug mb-2">{{ alert.description }}</p>
+        {% if alert.patient %}
+        <a href="/clinician/patients/{{ alert.patient_id }}" class="text-xs text-primary hover:underline">{{ alert.patient.name }} · {% include "components/phase_badge.html" with context %}</a>
+        {% endif %}
+    </div>
+    <div class="flex-shrink-0">
+        {% if not alert.acknowledged %}
+        <button hx-post="/clinician/alerts/{{ alert.id }}/acknowledge" hx-swap="outerHTML"
+                class="px-4 py-2 rounded-lg text-sm font-medium {% if alert.severity == 'critical' %}bg-[#DC2626] text-white hover:bg-[#B91C1C]{% else %}border border-[#E5E5E5] text-[#666666] hover:bg-[#F8F8F8]{% endif %}">
+            Acknowledge
+        </button>
+        {% else %}
+        <span class="text-xs text-[#AAAAAA]">Acknowledged</span>
+        {% endif %}
+    </div>
+</div>
