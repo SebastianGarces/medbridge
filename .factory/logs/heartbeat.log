@@ -1,0 +1,20 @@
+[heartbeat 2026-03-20T22:11:48] Starting factory watchdog
+[0;34m[heartbeat 2026-03-20T22:11:48] Starting factory watchdog[0m
+[0;34m[heartbeat 2026-03-20T22:11:48] Spec: /Users/sebastian/dev/gauntlet/medbridge/.factory/spec-1774062708673.json[0m
+[heartbeat 2026-03-20T22:11:48] Spec: /Users/sebastian/dev/gauntlet/medbridge/.factory/spec-1774062708673.json
+[heartbeat 2026-03-20T22:11:48] Project: /Users/sebastian/dev/gauntlet/medbridge
+[0;34m[heartbeat 2026-03-20T22:11:48] Project: /Users/sebastian/dev/gauntlet/medbridge[0m
+[heartbeat 2026-03-20T22:11:48] Stall threshold: 300s
+[0;34m[heartbeat 2026-03-20T22:11:48] Stall threshold: 300s[0m
+[heartbeat 2026-03-20T22:11:48] Max restarts: 5
+[0;34m[heartbeat 2026-03-20T22:11:48] Max restarts: 5[0m
+[0;34m[heartbeat 2026-03-20T22:11:48] Starting factory runner (attempt 1/5)[0m
+[heartbeat 2026-03-20T22:11:48] Starting factory runner (attempt 1/5)
+[heartbeat 2026-03-20T22:11:48] Runner PID: 41249
+[0;34m[heartbeat 2026-03-20T22:11:48] Runner PID: 41249[0m
+[1;33m[factory 22:11:49] WARN:[0m No credentials file found. Skipping auth check.
+[0;34m[factory 22:11:49][0m Initializing factory for input: /Users/sebastian/dev/gauntlet/medbridge/.factory/spec-1774062708673.json
+[0;34m[factory 22:11:49][0m Input: JSON spec
+[0;34m[factory 22:11:49][0m Factory started. Input: /Users/sebastian/dev/gauntlet/medbridge/.factory/spec-1774062708673.json
+[0;34m[factory 22:11:49][0m Phase: intake (iteration 1/10)
+[0;34m[factory 22:11:49][0m Starting phase: intake (session: factory-intake-1774062709, attempt: 1)
