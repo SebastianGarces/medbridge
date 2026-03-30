@@ -53,9 +53,11 @@ def check_phase_transition(state: CoachState) -> CoachState:
         if last_message_is_from_patient(state):
             new_state["phase"] = Phase.ACTIVE
             new_state["unanswered_count"] = 0
+            new_state["transition_event"] = None
             return new_state
         if backoff_exhausted(state):
             new_state["phase"] = Phase.DORMANT
+            new_state["transition_event"] = "re_engaging_to_dormant"
             return new_state
 
     if phase == Phase.DORMANT and last_message_is_from_patient(state):

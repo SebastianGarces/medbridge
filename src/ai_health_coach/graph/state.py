@@ -13,3 +13,5 @@ class CoachState(TypedDict):
     interaction_type: str | None
     safety_blocked: bool
     retry_count: int
+    safety_category: str | None
+    transition_event: str | None

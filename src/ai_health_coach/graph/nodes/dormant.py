@@ -3,7 +3,7 @@ from langchain_core.messages import AIMessage, SystemMessage
 from ai_health_coach.graph.state import CoachState
 
 
-async def warm_reengagement_node(state: CoachState, llm) -> dict:
+async def warm_reengagement_node(state: CoachState, llm, tools) -> dict:
     """Provide warm welcome-back message when dormant patient sends message."""
     response = await llm.ainvoke([
         SystemMessage(content=(

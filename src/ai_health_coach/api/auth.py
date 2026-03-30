@@ -1,6 +1,8 @@
-from fastapi import APIRouter, Request, Response, Depends, HTTPException
-from fastapi.responses import RedirectResponse
-from itsdangerous import URLSafeSerializer
+from datetime import datetime, timedelta, timezone
+
+import jwt
+from fastapi import APIRouter, Depends, HTTPException, Request
+from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -8,7 +10,7 @@ from ai_health_coach.config import get_settings
 from ai_health_coach.database import get_session
 from ai_health_coach.models.patient import Patient
 
-router = APIRouter()
+router = APIRouter(prefix="/api/auth", tags=["auth"])
 
 DEMO_PATIENTS = [
     {"id": "patient-1", "name": "Sarah Johnson", "email": "sarah@example.com"},
@@ -20,13 +22,41 @@ DEMO_CLINICIANS = [
 ]
 
 
-def get_serializer() -> URLSafeSerializer:
+class LoginRequest(BaseModel):
+    user_id: str
+    user_type: str = "patient"
+
+
+def create_jwt_token(user_id: str, user_type: str) -> str:
     settings = get_settings()
-    return URLSafeSerializer(settings.SECRET_KEY)
+    payload = {
+        "user_id": user_id,
+        "user_type": user_type,
+        "exp": datetime.now(timezone.utc) + timedelta(hours=settings.JWT_EXPIRATION_HOURS),
+    }
+    return jwt.encode(payload, settings.JWT_SECRET, algorithm="HS256")
+
+
+def decode_jwt_token(token: str) -> dict:
+    settings = get_settings()
+    return jwt.decode(token, settings.JWT_SECRET, algorithms=["HS256"])
+
+
+def _extract_token(request: Request) -> str | None:
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header.startswith("Bearer "):
+        return auth_header[7:]
+    token = request.query_params.get("token")
+    if token:
+        return token
+    return None
 
 
 async def seed_demo_users(session: AsyncSession) -> None:
-    """Seed demo patients and clinician if they don't exist."""
+    """Seed demo patients, exercise programs, and sample sessions."""
+    from ai_health_coach.models.patient import AssignedExercise, ExerciseSession
+    from ai_health_coach.exercises.video_library import get_all as get_all_videos
+
     for patient_data in DEMO_PATIENTS:
         existing = await session.get(Patient, patient_data["id"])
         if not existing:
@@ -38,37 +68,78 @@ async def seed_demo_users(session: AsyncSession) -> None:
             session.add(patient)
     await session.commit()
 
+    # Seed exercise programs from real MedBridge video library
+    all_videos = get_all_videos()
+    assignments = {
+        "patient-1": [v for v in all_videos if v.get("category1") == "Orthopedics"][:4],
+        "patient-2": [v for v in all_videos if v.get("category1") == "Neurology"][:4],
+    }
+
+    for pid, exercises in assignments.items():
+        for ex in exercises:
+            exists = (await session.execute(
+                select(AssignedExercise).where(
+                    AssignedExercise.patient_id == pid,
+                    AssignedExercise.exercise_name == ex["name"],
+                )
+            )).scalar_one_or_none()
+            if not exists:
+                session.add(AssignedExercise(
+                    patient_id=pid,
+                    exercise_name=ex["name"],
+                    exercise_token=ex.get("token"),
+                    sets=3,
+                    reps=10,
+                ))
+    await session.commit()
+
+    # Seed sample exercise sessions for patient-1 (12 sessions over past 15 days)
+    p1_exercises = (await session.execute(
+        select(AssignedExercise).where(AssignedExercise.patient_id == "patient-1")
+    )).scalars().all()
+    existing_sessions = (await session.execute(
+        select(ExerciseSession).where(ExerciseSession.patient_id == "patient-1")
+    )).scalars().all()
+
+    if p1_exercises and not existing_sessions:
+        now = datetime.utcnow()
+        for days_ago in [1, 2, 3, 4, 5, 7, 8, 9, 10, 12, 13, 14]:
+            ex = p1_exercises[days_ago % len(p1_exercises)]
+            session.add(ExerciseSession(
+                exercise_id=ex.id,
+                patient_id="patient-1",
+                completed_at=now - timedelta(days=days_ago, hours=10),
+            ))
+        await session.commit()
+
 
 async def get_current_patient(
     request: Request,
     session: AsyncSession = Depends(get_session),
 ) -> Patient | None:
-    """Read patient_id from session cookie, load from DB."""
-    cookie = request.cookies.get("session")
-    if not cookie:
+    """Read patient from JWT token."""
+    token = _extract_token(request)
+    if not token:
         return None
     try:
-        s = get_serializer()
-        data = s.loads(cookie)
+        data = decode_jwt_token(token)
         if data.get("user_type") != "patient":
             return None
         patient_id = data.get("user_id")
         if not patient_id:
             return None
-        patient = await session.get(Patient, patient_id)
-        return patient
-    except Exception:
+        return await session.get(Patient, patient_id)
+    except jwt.PyJWTError:
         return None
 
 
 async def get_current_clinician(request: Request) -> dict | None:
-    """Read clinician_id from session cookie."""
-    cookie = request.cookies.get("session")
-    if not cookie:
+    """Read clinician from JWT token."""
+    token = _extract_token(request)
+    if not token:
         return None
     try:
-        s = get_serializer()
-        data = s.loads(cookie)
+        data = decode_jwt_token(token)
         if data.get("user_type") != "clinician":
             return None
         clinician_id = data.get("user_id")
@@ -76,39 +147,70 @@ async def get_current_clinician(request: Request) -> dict | None:
             if c["id"] == clinician_id:
                 return c
         return None
-    except Exception:
+    except jwt.PyJWTError:
         return None
 
 
+@router.get("/demo-users")
+async def demo_users():
+    """Return available demo users for login page."""
+    return {"patients": DEMO_PATIENTS, "clinicians": DEMO_CLINICIANS}
+
+
 @router.post("/login")
-async def login(request: Request) -> Response:
-    """Set session cookie for selected demo user."""
-    form = await request.form()
-    user_id = form.get("user_id")
-    user_type = form.get("user_type", "patient")
+async def login(
+    body: LoginRequest,
+    session: AsyncSession = Depends(get_session),
+):
+    """Authenticate and return JWT token."""
+    if body.user_type == "patient":
+        patient = await session.get(Patient, body.user_id)
+        if not patient:
+            raise HTTPException(status_code=404, detail="Patient not found")
+        token = create_jwt_token(body.user_id, body.user_type)
+        return {
+            "token": token,
+            "user": {
+                "id": patient.id,
+                "name": patient.name,
+                "type": "patient",
+                "email": patient.email,
+                "phase": patient.phase,
+                "consent_given": patient.consent_given,
+            },
+        }
+    elif body.user_type == "clinician":
+        clinician = next((c for c in DEMO_CLINICIANS if c["id"] == body.user_id), None)
+        if not clinician:
+            raise HTTPException(status_code=404, detail="Clinician not found")
+        token = create_jwt_token(body.user_id, body.user_type)
+        return {
+            "token": token,
+            "user": {
+                "id": clinician["id"],
+                "name": clinician["name"],
+                "type": "clinician",
+            },
+        }
+    raise HTTPException(status_code=400, detail="Invalid user_type")
 
-    s = get_serializer()
-    cookie_value = s.dumps({"user_id": user_id, "user_type": user_type})
 
-    response = RedirectResponse(url="/", status_code=303)
-    response.set_cookie(
-        key="session",
-        value=cookie_value,
-        httponly=True,
-        samesite="lax",
-    )
-    return response
-
-
-@router.get("/auth/me")
+@router.get("/me")
 async def auth_me(
     request: Request,
     session: AsyncSession = Depends(get_session),
 ):
-    """Return current user info (for testing)."""
+    """Return current user info."""
     patient = await get_current_patient(request, session)
     if patient:
-        return {"id": patient.id, "name": patient.name, "type": "patient"}
+        return {
+            "id": patient.id,
+            "name": patient.name,
+            "type": "patient",
+            "email": patient.email,
+            "phase": patient.phase,
+            "consent_given": patient.consent_given,
+        }
 
     clinician = await get_current_clinician(request)
     if clinician:
@@ -117,20 +219,7 @@ async def auth_me(
     raise HTTPException(status_code=401, detail="Not authenticated")
 
 
-@router.get("/login")
-async def login_page(request: Request):
-    """Render login page."""
-    templates = request.app.state.templates
-    return templates.TemplateResponse("login.html", {
-        "request": request,
-        "patients": DEMO_PATIENTS,
-        "clinicians": DEMO_CLINICIANS,
-    })
-
-
 @router.post("/logout")
-async def logout() -> Response:
-    """Clear session cookie."""
-    response = RedirectResponse(url="/login", status_code=303)
-    response.delete_cookie("session")
-    return response
+async def logout():
+    """Logout (client should discard token)."""
+    return {"ok": True}

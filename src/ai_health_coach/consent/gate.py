@@ -34,11 +34,14 @@ async def grant_consent(patient_id: str, session: AsyncSession) -> None:
     await session.commit()
 
 
-async def revoke_consent(patient_id: str, session: AsyncSession) -> None:
-    """Revoke consent, reset phase to PENDING, preserve history."""
+async def revoke_consent(patient_id: str, session: AsyncSession, scheduler=None) -> None:
+    """Revoke consent, reset phase to PENDING, cancel scheduled jobs."""
     stmt = select(Patient).where(Patient.id == patient_id)
     patient = (await session.execute(stmt)).scalar_one()
     patient.consent_given = False
     patient.consent_given_at = None
     patient.phase = Phase.PENDING
     await session.commit()
+    if scheduler:
+        from ai_health_coach.scheduler.followup import cancel_patient_jobs
+        cancel_patient_jobs(patient_id, scheduler)

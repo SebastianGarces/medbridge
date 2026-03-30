@@ -30,7 +30,7 @@ async def test_respond_node_uses_tools():
         content="Your program includes Shoulder flexion stretch (3x10)."
     ))
     state = _make_state(messages=[HumanMessage(content="What exercises do I have?")])
-    result = await respond_node(state, mock_llm)
+    result = await respond_node(state, mock_llm, [])
     assert "messages" in result
 
 
@@ -41,7 +41,7 @@ async def test_checkin_celebration_tone():
         content="Amazing work this week! You've been so consistent!"
     ))
     state = _make_state(interaction_type="celebration")
-    result = await checkin_node(state, mock_llm)
+    result = await checkin_node(state, mock_llm, [])
     assert "messages" in result
 
 
@@ -52,7 +52,7 @@ async def test_checkin_nudge_tone():
         content="Hey! Just checking in — how are your exercises going?"
     ))
     state = _make_state(interaction_type="nudge")
-    result = await checkin_node(state, mock_llm)
+    result = await checkin_node(state, mock_llm, [])
     assert "messages" in result
 
 
@@ -61,5 +61,5 @@ async def test_checkin_increments_unanswered():
     mock_llm = MagicMock()
     mock_llm.ainvoke = AsyncMock(return_value=AIMessage(content="How are you?"))
     state = _make_state(interaction_type="check_in", unanswered_count=1)
-    result = await checkin_node(state, mock_llm)
+    result = await checkin_node(state, mock_llm, [])
     assert result["unanswered_count"] == 2

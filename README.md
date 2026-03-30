@@ -6,7 +6,7 @@ An AI-powered health coaching platform for home exercise programs, built with Fa
 
 - **Python** >= 3.11
 - **pip** (or a virtualenv manager like `venv`)
-- An **OpenAI API key** with access to `gpt-4o` (or the model specified in `MODEL_NAME`)
+- An **OpenRouter API key** (sign up at https://openrouter.ai) — supports OpenAI, Anthropic, Google, and other models
 
 ## Environment Variables
 
@@ -15,17 +15,21 @@ The app loads configuration via [Pydantic Settings](https://docs.pydantic.dev/la
 | Variable | Description | Default / Example |
 |---|---|---|
 | `DATABASE_URL` | SQLAlchemy async database connection string | `sqlite+aiosqlite:///./coach.db` |
-| `OPENAI_API_KEY` | OpenAI API key for LLM calls (LangChain) | `sk-proj-...` (no usable default — must be set) |
-| `MODEL_NAME` | OpenAI model identifier | `gpt-4o` |
+| `OPENROUTER_API_KEY` | OpenRouter API key for LLM calls | `sk-or-...` (no usable default — must be set) |
+| `MODEL_NAME` | Model identifier (OpenRouter format) | `openai/gpt-4o` |
 | `SECRET_KEY` | Secret used to sign session cookies (change in production) | `dev-secret-key-change-in-production` |
+| `OPENROUTER_BASE_URL` | OpenRouter API endpoint | `https://openrouter.ai/api/v1` |
+| `APP_TITLE` | App name sent to OpenRouter for attribution | `AI Health Coach` |
+| `APP_URL` | App URL sent to OpenRouter for attribution | `http://localhost:8000` |
 
 Create a `.env` file in the project root:
 
 ```env
-OPENAI_API_KEY=sk-proj-your-key-here
+OPENROUTER_API_KEY=sk-or-your-key-here
 SECRET_KEY=change-me-in-production
-# DATABASE_URL=sqlite+aiosqlite:///./coach.db   # optional, uses default
-# MODEL_NAME=gpt-4o                              # optional, uses default
+# DATABASE_URL=sqlite+aiosqlite:///./coach.db              # optional, uses default
+# MODEL_NAME=openai/gpt-4o                                 # optional, uses default
+# OPENROUTER_BASE_URL=https://openrouter.ai/api/v1         # optional, uses default
 ```
 
 ## Setup
@@ -42,7 +46,7 @@ source .venv/bin/activate
 pip install -e ".[dev]"
 
 # 4. Create your .env file (see Environment Variables above)
-cp .env.example .env 2>/dev/null || echo 'OPENAI_API_KEY=sk-proj-...' > .env
+cp .env.example .env 2>/dev/null || echo 'OPENROUTER_API_KEY=sk-or-...' > .env
 
 # 5. The SQLite database is created automatically on first startup
 ```
@@ -90,7 +94,7 @@ pytest tests/integration/
 pytest -k "test_phase"
 ```
 
-Tests use an in-memory SQLite database and mock LLM responses — no OpenAI key is needed for testing.
+Tests use an in-memory SQLite database and mock LLM responses — no OpenRouter key is needed for testing.
 
 ## API Endpoints
 

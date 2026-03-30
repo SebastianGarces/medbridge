@@ -30,6 +30,9 @@ class Patient(Base):
     alerts: Mapped[list["Alert"]] = relationship(
         back_populates="patient", lazy="selectin"
     )
+    assigned_exercises: Mapped[list["AssignedExercise"]] = relationship(
+        back_populates="patient", lazy="selectin"
+    )
 
 
 class Goal(Base):
@@ -79,4 +82,43 @@ class PhaseTransition(Base):
     from_phase: Mapped[str] = mapped_column(String, nullable=False)
     to_phase: Mapped[str] = mapped_column(String, nullable=False)
     reason: Mapped[str | None] = mapped_column(String, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
+
+
+class AssignedExercise(Base):
+    __tablename__ = "assigned_exercises"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    patient_id: Mapped[str] = mapped_column(ForeignKey("patients.id"))
+    exercise_name: Mapped[str] = mapped_column(String, nullable=False)
+    exercise_token: Mapped[str | None] = mapped_column(String, nullable=True)
+    sets: Mapped[int] = mapped_column(Integer, default=3)
+    reps: Mapped[int] = mapped_column(Integer, default=10)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
+
+    patient: Mapped["Patient"] = relationship(back_populates="assigned_exercises")
+    sessions: Mapped[list["ExerciseSession"]] = relationship(
+        back_populates="exercise", lazy="selectin"
+    )
+
+
+class ExerciseSession(Base):
+    __tablename__ = "exercise_sessions"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    exercise_id: Mapped[str] = mapped_column(ForeignKey("assigned_exercises.id"))
+    patient_id: Mapped[str] = mapped_column(ForeignKey("patients.id"))
+    completed_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
+
+    exercise: Mapped["AssignedExercise"] = relationship(back_populates="sessions")
+
+
+class Reminder(Base):
+    __tablename__ = "reminders"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    patient_id: Mapped[str] = mapped_column(ForeignKey("patients.id"))
+    reminder_type: Mapped[str] = mapped_column(String, nullable=False)
+    scheduled_date: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    fired: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())

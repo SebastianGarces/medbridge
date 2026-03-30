@@ -30,5 +30,5 @@ async def test_warm_reengagement_welcoming():
         content="It's great to hear from you again! Welcome back!"
     ))
     state = _make_state(messages=[HumanMessage(content="Hello")])
-    result = await warm_reengagement_node(state, mock_llm)
+    result = await warm_reengagement_node(state, mock_llm, [])
     assert "messages" in result

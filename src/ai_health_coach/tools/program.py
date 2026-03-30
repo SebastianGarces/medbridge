@@ -1,17 +1,31 @@
 import json
 
-from langchain_core.tools import tool
+from langchain_core.tools import tool, StructuredTool
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from ai_health_coach.models.patient import AssignedExercise
 
 
-@tool
-def get_program_summary(patient_id: str) -> str:
-    """Retrieve the patient's assigned home exercise program."""
-    program = {
-        "exercises": [
-            {"name": "Shoulder flexion stretch", "sets": 3, "reps": 10},
-            {"name": "Pendulum swings", "sets": 2, "reps": 15},
-            {"name": "Wall climbing stretch", "sets": 3, "reps": 8},
-            {"name": "Cross-body stretch", "sets": 2, "reps": 12},
-        ]
-    }
-    return json.dumps(program)
+def make_get_program_summary(session: AsyncSession) -> StructuredTool:
+    """Create a get_program_summary tool bound to the given DB session."""
+
+    @tool
+    async def get_program_summary(patient_id: str) -> str:
+        """Retrieve the patient's assigned home exercise program."""
+        stmt = select(AssignedExercise).where(AssignedExercise.patient_id == patient_id)
+        exercises = (await session.execute(stmt)).scalars().all()
+        program = {
+            "exercises": [
+                {
+                    "name": e.exercise_name,
+                    "sets": e.sets,
+                    "reps": e.reps,
+                    "token": e.exercise_token,
+                }
+                for e in exercises
+            ]
+        }
+        return json.dumps(program)
+
+    return get_program_summary

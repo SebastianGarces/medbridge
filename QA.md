@@ -3,7 +3,7 @@
 ## Prerequisites
 
 - Application running locally (`uvicorn ai_health_coach.main:app --reload --port 8000`)
-- Valid `OPENAI_API_KEY` in `.env` for LLM-dependent flows
+- Valid `OPENROUTER_API_KEY` in `.env` for LLM-dependent flows
 - All tests passing (`pytest`)
 
 ## Test Accounts
@@ -100,7 +100,7 @@ Demo users are seeded automatically on startup.
 - Full test suite (unit + integration)
 
 ### Needs Human Attention
-- **OpenAI API key** — Must be provided in `.env` for LLM features to work
+- **OpenRouter API key** — Must be provided in `.env` for LLM features to work
 - **Production auth** — Replace demo cookie auth with a proper identity provider
 - **Exercise program data** — Connect to real clinical data instead of stubs
 - **Production database** — Switch from SQLite to PostgreSQL for deployment

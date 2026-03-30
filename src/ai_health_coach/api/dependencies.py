@@ -20,9 +20,9 @@ async def require_patient(
 async def require_patient_with_consent(
     patient: Patient = Depends(require_patient),
 ) -> Patient:
-    """Require authenticated and consented patient, or redirect to /consent."""
+    """Require authenticated and consented patient, or return 403."""
     if not patient.consent_given:
-        raise HTTPException(status_code=303, headers={"Location": "/consent"})
+        raise HTTPException(status_code=403, detail="Consent required")
     return patient
 
 

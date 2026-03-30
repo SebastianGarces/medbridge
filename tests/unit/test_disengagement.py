@@ -4,8 +4,10 @@ from ai_health_coach.scheduler.followup import get_backoff_delay, should_go_dorm
 
 
 def test_backoff_delays():
-    assert get_backoff_delay(1) == 2
-    assert get_backoff_delay(2) == 3
+    assert get_backoff_delay(0) == 1   # 2^0
+    assert get_backoff_delay(1) == 2   # 2^1
+    assert get_backoff_delay(2) == 4   # 2^2
+    assert get_backoff_delay(3) == 8   # 2^3
 
 
 def test_dormant_after_three_unanswered():

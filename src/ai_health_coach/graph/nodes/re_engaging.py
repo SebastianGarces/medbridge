@@ -10,7 +10,7 @@ RE_ENGAGING_SYSTEM_PROMPT = (
 )
 
 
-async def nudge_node(state: CoachState, llm) -> dict:
+async def nudge_node(state: CoachState, llm, tools) -> dict:
     """Generate re-engagement messages with increasing urgency."""
     unanswered = state.get("unanswered_count", 1)
 

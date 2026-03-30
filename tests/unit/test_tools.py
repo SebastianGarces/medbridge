@@ -1,11 +1,11 @@
 import pytest
 import json
 
-from ai_health_coach.models.patient import Patient, Goal
+from ai_health_coach.models.patient import Patient, Goal, AssignedExercise, ExerciseSession, Reminder
 from ai_health_coach.tools.goals import make_set_goal
 from ai_health_coach.tools.alerts import make_alert_clinician
-from ai_health_coach.tools.program import get_program_summary
-from ai_health_coach.tools.adherence import get_adherence_summary
+from ai_health_coach.tools.program import make_get_program_summary
+from ai_health_coach.tools.adherence import make_get_adherence_summary
 from ai_health_coach.tools.reminders import make_set_reminder
 from ai_health_coach.tools import get_all_tools
 
@@ -65,20 +65,48 @@ async def test_alert_clinician_creates_alert(db_session):
     assert alert.severity == "critical"
 
 
-def test_get_program_summary_returns_exercises():
-    result = get_program_summary.invoke({"patient_id": "p1"})
+@pytest.mark.asyncio
+async def test_get_program_summary_returns_exercises(db_session):
+    patient = Patient(id="p4", name="Test4")
+    db_session.add(patient)
+    await db_session.commit()
+
+    db_session.add(AssignedExercise(
+        patient_id="p4", exercise_name="Shoulder Stretch", sets=3, reps=10,
+    ))
+    db_session.add(AssignedExercise(
+        patient_id="p4", exercise_name="Pendulum Swings", sets=2, reps=15,
+    ))
+    await db_session.commit()
+
+    tool = make_get_program_summary(db_session)
+    result = await tool.ainvoke({"patient_id": "p4"})
     data = json.loads(result)
     assert "exercises" in data
-    assert len(data["exercises"]) == 4
-    assert "sets" in data["exercises"][0]
-    assert "reps" in data["exercises"][0]
+    assert len(data["exercises"]) == 2
+    assert data["exercises"][0]["sets"] == 3
 
 
-def test_get_adherence_summary_returns_metrics():
-    result = get_adherence_summary.invoke({"patient_id": "p1"})
+@pytest.mark.asyncio
+async def test_get_adherence_summary_returns_metrics(db_session):
+    patient = Patient(id="p5", name="Test5")
+    db_session.add(patient)
+    await db_session.commit()
+
+    ex = AssignedExercise(patient_id="p5", exercise_name="Stretch", sets=1, reps=5)
+    db_session.add(ex)
+    await db_session.commit()
+
+    # Add a session
+    db_session.add(ExerciseSession(patient_id="p5", exercise_id=ex.id))
+    await db_session.commit()
+
+    tool = make_get_adherence_summary(db_session)
+    result = await tool.ainvoke({"patient_id": "p5"})
     data = json.loads(result)
     assert "adherence_pct" in data
     assert "streak" in data
+    assert data["sessions_completed"] == 1
 
 
 def test_get_all_tools_returns_five(db_session):
@@ -93,11 +121,21 @@ def test_get_all_tools_returns_five(db_session):
 
 
 @pytest.mark.asyncio
-async def test_set_reminder_returns_confirmation(db_session):
+async def test_set_reminder_creates_record(db_session):
+    patient = Patient(id="p6", name="Test6")
+    db_session.add(patient)
+    await db_session.commit()
+
     set_reminder = make_set_reminder(db_session)
     result = await set_reminder.ainvoke({
-        "patient_id": "p1",
+        "patient_id": "p6",
         "reminder_type": "check_in",
         "scheduled_date": "2026-03-25",
     })
-    assert "reminder" in result.lower() or "scheduled" in result.lower()
+    assert "scheduled" in result.lower()
+
+    from sqlalchemy import select
+    stmt = select(Reminder).where(Reminder.patient_id == "p6")
+    reminder = (await db_session.execute(stmt)).scalar_one()
+    assert reminder.reminder_type == "check_in"
+    assert not reminder.fired

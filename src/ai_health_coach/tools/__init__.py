@@ -2,8 +2,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ai_health_coach.tools.goals import make_set_goal
 from ai_health_coach.tools.reminders import make_set_reminder
-from ai_health_coach.tools.program import get_program_summary
-from ai_health_coach.tools.adherence import get_adherence_summary
+from ai_health_coach.tools.program import make_get_program_summary
+from ai_health_coach.tools.adherence import make_get_adherence_summary
 from ai_health_coach.tools.alerts import make_alert_clinician
 
 
@@ -12,7 +12,7 @@ def get_all_tools(session: AsyncSession) -> list:
     return [
         make_set_goal(session),
         make_set_reminder(session),
-        get_program_summary,
-        get_adherence_summary,
+        make_get_program_summary(session),
+        make_get_adherence_summary(session),
         make_alert_clinician(session),
     ]

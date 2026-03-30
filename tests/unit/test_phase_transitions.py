@@ -21,6 +21,8 @@ def _make_state(**overrides) -> CoachState:
         "interaction_type": None,
         "safety_blocked": False,
         "retry_count": 0,
+        "safety_category": None,
+        "transition_event": None,
     }
     defaults.update(overrides)
     return defaults
@@ -94,6 +96,37 @@ def test_no_transition_when_no_trigger():
     state = _make_state(phase=Phase.ACTIVE, unanswered_count=1)
     new_state = check_phase_transition(state)
     assert new_state["phase"] == Phase.ACTIVE
+
+
+def test_re_engaging_to_dormant_sets_transition_event():
+    state = _make_state(phase=Phase.RE_ENGAGING, unanswered_count=3)
+    new_state = check_phase_transition(state)
+    assert new_state["phase"] == Phase.DORMANT
+    assert new_state["transition_event"] == "re_engaging_to_dormant"
+
+
+def test_other_transitions_no_event():
+    """Other transitions should not set transition_event."""
+    # PENDING → ONBOARDING
+    state = _make_state(phase=Phase.PENDING, consent_verified=True)
+    result = check_phase_transition(state)
+    assert result["phase"] == Phase.ONBOARDING
+    assert result.get("transition_event") is None
+
+    # ONBOARDING → ACTIVE
+    state = _make_state(phase=Phase.ONBOARDING, goal="Walk daily")
+    result = check_phase_transition(state)
+    assert result["phase"] == Phase.ACTIVE
+    assert result.get("transition_event") is None
+
+    # RE_ENGAGING → ACTIVE (patient returns)
+    state = _make_state(
+        phase=Phase.RE_ENGAGING,
+        messages=[HumanMessage(content="I'm back")],
+    )
+    result = check_phase_transition(state)
+    assert result["phase"] == Phase.ACTIVE
+    assert result.get("transition_event") is None
 
 
 def test_last_message_is_from_patient():

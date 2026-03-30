@@ -28,7 +28,7 @@ async def test_nudge_increases_urgency():
     mock_llm = MagicMock()
     mock_llm.ainvoke = AsyncMock(return_value=AIMessage(content="We miss you!"))
     state = _make_state(unanswered_count=2)
-    result = await nudge_node(state, mock_llm)
+    result = await nudge_node(state, mock_llm, [])
     assert "messages" in result
 
 
@@ -37,5 +37,5 @@ async def test_patient_response_marks_active():
     mock_llm = MagicMock()
     mock_llm.ainvoke = AsyncMock(return_value=AIMessage(content="Welcome back!"))
     state = _make_state(messages=[HumanMessage(content="I'm back")])
-    result = await nudge_node(state, mock_llm)
+    result = await nudge_node(state, mock_llm, [])
     assert "messages" in result
